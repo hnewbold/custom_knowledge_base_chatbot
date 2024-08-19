@@ -21,8 +21,7 @@ This project leverages a GPT-based Large Language Model (LLM) from OpenAI to cre
 The chatbot application was built using Python and incorporates LangChain for document processing, Facebook AI Similarity Search (FAISS) for vector storage, and Streamlit to create an interactive web interface. Designed for easy extensibility, the application allows users to update the knowledge base by simply adding new PDF documents. For this particular project, a custom set of files was generated using ChatGPT, containing basic information about a fictional bank, "Bank XYZ," including details about locations, hours of operation, and products. Referencing these files, the bot application is able to accurately answer custom domain questions such as what types of products are offered, hours of operation for specific branches, or how to open a certain product.
 
 <p align="center">
-  <img src="Chatbot ScreenShot 1.png" alt="Image 1" width="300" height="200" style="margin-right: 50px;">
-  <img src="Chatbot Screenshot 2.png" alt="Image 2" width="300" height="200">
+  <img src="Chatbot ScreenShot 1.png" alt="Image 1" width="500" height="300" >
 </p>
 
 
