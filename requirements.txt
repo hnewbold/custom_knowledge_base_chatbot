@@ -1,0 +1,11 @@
+pip==23.1.2
+langchain==0.0.316
+openai==0.28.1
+pypdf
+pandas
+matplotlib
+tiktoken
+textract
+transformers
+faiss-cpu
+streamlit
