@@ -1,15 +1,26 @@
-# Custom Knowledge Base Chatbot
+# Custom Knowledge Base AI Chatbot Using GPT-3 Deployed on Streamlit
 
-## Introduction
+**Author**: Husani Newbold
 
-Welcome to the Custom Knowledge Base Chatbot project! This project is a chatbot application that uses a Large Language Model (LLM) to process text from a collection of PDF documents and a GPT model (via OpenAI) to provide answers to user queries. The application is built using Python, leveraging LangChain, FAISS for vector storage, and Streamlit to create an interactive web interface. The chatbot is designed to be easily extensible, allowing users to update the knowledge base by simply adding new PDF documents.
+**Date**: 2024-08-19
 
-## Key Features
-- **Custom Knowledge Base:** The chatbot processes PDF documents, extracting text to create a searchable knowledge base.
-- **Advanced Query Handling:** The chatbot uses a pre-trained GPT model to understand and answer user queries based on the knowledge base.
-- **Streamlit Integration:** The chatbot is hosted on a Streamlit interface, providing a simple and intuitive way to interact with the model.
+## Table of Contents
+1. [Introduction & Project Description](#introduction--project-description)
+2. [Code Walkthrough and Key Components](#code-walkthrough--key-components)
+3. [How to Run the Project](#how-to-run-the-project)
+4. [Improvements and Recommendations](#improvements-and-recommendations)
+5. [Contributors](#contributors)
 
-## Key Parts of the Code
+
+## Introduction & Project Description
+
+### Introduction
+This project leverages a GPT-based Large Language Model (LLM) from OpenAI to create a chatbot that can process text from a knowledge base built using a collection of custom PDF documents. The chatbot then uses generative AI to provide accurate answers to user queries based on this knowledge base. 
+
+### Project Description
+The chatbot application was built using Python and incorporates LangChain for document processing, Facebook AI Similarity Search (FAISS) for vector storage, and Streamlit to create an interactive web interface. Designed for easy extensibility, the application allows users to update the knowledge base by simply adding new PDF documents. For this particular project, a custom set of files was generated using ChatGPT, containing basic information about a fictional bank, "Bank XYZ," including details about locations, hours of operation, and products. Referencing these files, the bot application is able to accurately answer custom domain questions such as what types of products are offered, hours of operation for specific branches, or how to open a certain product.
+
+## Code Walkthrough and Key Components
 
 ### 1. Environment Setup
 
@@ -17,25 +28,31 @@ Welcome to the Custom Knowledge Base Chatbot project! This project is a chatbot 
 # Set environment variable to avoid OpenMP runtime error
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
-# Load environment variables from .env file (including OpenAI API key)
+# Load OpenAI API key from environment variables
 load_dotenv()
+openai_api_key = os.getenv("OPENAI_API_KEY")
+os.environ["OPENAI_API_KEY"] = openai_api_key
 ```
-Purpose: The environment variable is set to avoid conflicts related to OpenMP runtime, which may arise due to different libraries using OpenMP. The load_dotenv() function loads environment variables from a .env file, ensuring that sensitive information like API keys is not hardcoded.
-
-```python
-# Step 1: Convert all PDFs in the folder to text
-pdf_folder = "./knowledge_base"  # Replace with the actual folder path containing your PDFs
-docs = []
-```
+- The environment variable KMP_DUPLICATE_LIB_OK is set to TRUE to prevent conflicts that may arise due to different libraries using the OpenMP runtime. 
+- The load_dotenv() function loads the API key from a .env file to keep it protected and out of the main script. 
 
 ### 2. PDF Processing
+```python
+# Convert all PDFs in the folder to text
+pdf_folder = "./knowledge_base"  # Replace with the actual folder path containing your PDFs
+docs = []
+
 for filename in os.listdir(pdf_folder):
     if filename.endswith(".pdf"):
         pdf_path = os.path.join(pdf_folder, filename)
         text = textract.process(pdf_path).decode('utf-8')
         docs.append(text)
+
+# Combine extracted text into one large document
+combined_text = "\n".join(docs)
+
 ```
-Purpose: This code iterates through all PDF files in a specified folder, extracts the text from each PDF using the textract library, and appends the extracted text to a list. This list is then combined into one large text block to be used as the knowledge base.
+- This code iterates through all PDF files in a specified folder, extracts the text from each PDF using the textract library, and appends the extracted text to a list. The list is then combined into one large text block, which serves as the knowledge base for the chatbot to reference when answering user queries. 
 
 ### 3. Text Splitting and Tokenization
 ```python
@@ -53,7 +70,13 @@ text_splitter = RecursiveCharacterTextSplitter(
 
 chunks = text_splitter.create_documents([combined_text])
 ```
-Purpose: The text from the PDFs is tokenized and split into manageable chunks using a recursive character splitter. This helps in creating smaller, indexed pieces of text that can be efficiently searched when responding to queries.
+- **GPT2TokenizerFast**: This tokenizer converts text into tokens, preparing it for processing by the model.
+
+- **count_tokens Function**: This function counts the number of tokens in a given text, helping manage text length.
+
+- **RecursiveCharacterTextSplitter**: This tool splits the text into smaller, manageable chunks based on token count, with some overlap between chunks to maintain context.
+
+- **Chunk Creation**: The text is split into chunks that are easier for the model to search through when responding to queries.
 
 ### 4. Embeddings and FAISS Index Creation
 ```python
@@ -61,7 +84,7 @@ Purpose: The text from the PDFs is tokenized and split into manageable chunks us
 embeddings = OpenAIEmbeddings()
 db = FAISS.from_documents(chunks, embeddings)
 ```
-Purpose: The text chunks are transformed into vector embeddings using OpenAI embeddings. These embeddings are then indexed using FAISS, which allows for efficient similarity search and is crucial for retrieving relevant documents when answering user queries.
+- The text chunks are transformed into vector embeddings using OpenAI embeddings. Vector embeddings are numerical representations of text that capture the semantic meaning and context of the content. These embeddings allow similar pieces of text to be located near each other in a high-dimensional space. These embeddings are then indexed using FAISS, which allows for efficient similarity search and is crucial for retrieving relevant documents when answering user queries.
 
 ### 5. Query Handling
 ```python
@@ -73,7 +96,7 @@ def answer_query(query, db):
     response = chain.run(input_documents=docs, question=query)
     return response
 ```
-Purpose: This function takes a user query, searches the FAISS index for relevant text chunks, and uses the GPT model to generate a response. The response is based on the most similar documents found in the knowledge base.
+- This function takes a user query, searches the FAISS index for relevant text chunks, and uses the GPT model to generate a response. The response is based on the most similar documents found in the knowledge base.
 
 ### 6. Streamlit Interface
 ```python
@@ -90,12 +113,13 @@ if st.button("Get Answer"):
     else:
         st.write("Please enter a query.")
 ```
-Purpose: This code sets up the Streamlit interface, allowing users to input queries and receive answers in an interactive, web-based format.
+- This code sets up the Streamlit interface, allowing users to input queries and receive answers in an interactive, web-based format.
 
 ## How to Run the Project
 ### 1. Clone the Repository
-```python
-git clone https://github.com/your-username/custom_knowledge_base_chatbot.git
+
+```bash
+git clone https://github.com/hnewbold/custom_knowledge_base_chatbot.git
 cd custom_knowledge_base_chatbot
 ```
 ### 2. Set Up the Environment
@@ -107,7 +131,7 @@ source env/bin/activate  # On Windows use `env\Scripts\activate`
 pip install -r requirements.txt
 ```
 #### b) Set up OpenAI API Key
-Create a .env file in the root directory and add your OpenAI API key:
+Create a .env file in the root directory and add your own OpenAI API key:
 ```python
 OPENAI_API_KEY=your_openai_api_key_here
 ```
@@ -116,5 +140,15 @@ OPENAI_API_KEY=your_openai_api_key_here
 ```python
 streamlit run app.py
 ```
-This will start the chatbot on a local web server. You can interact with the chatbot via the web interface.
+This will launch the chatbot application on a local web server where you can interact with the chatbot via the web interface.
+
+## Improvements and Recommendations
+- Adjust the GPT Model's Temperature Setting: Experiment with the temperature parameter, which controls the randomness of the model's output. Lowering the temperature makes the output more deterministic and focused, which might be better for specific domain questions. Conversely, slightly increasing it could make the responses more creative, which might be useful depending on the application's needs.
+
+- Improve the Chatbot Interface: Enhance the user interface of the chatbot by adding features such as a conversation history pane and a more polished text input box. This would make the interaction more user-friendly, allowing users to follow the flow of the conversation and revisit previous responses without losing context.
+
+- Optimize Text Storage and Processing: Consider implementing a more efficient way to store and process the text files from the knowledge base. This could involve using a database to store the documents and retrieve them more quickly or exploring more advanced text processing techniques to reduce memory usage and improve the overall performance of the application.
+
+## Contributors
+Husani Newbold (Author)
 
